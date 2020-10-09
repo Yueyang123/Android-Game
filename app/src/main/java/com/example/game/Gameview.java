@@ -29,7 +29,9 @@ public class Gameview extends View {
         testx=(int )event.getX();
         testy=(int )event.getY();
         invalidate();
-        return super.onTouchEvent(event);
+        //使用这种方式无法识别滑动
+        //return super.onTouchEvent(event);
+        return true;
     }
 
 }
