@@ -1,34 +1,42 @@
 package com.example.game;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.PixelFormat;
-import android.util.Log;
+import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 
 
-public class GameSurface extends SurfaceView implements SurfaceHolder.Callback,Runnable {
+public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
-    private int testx=30,testy=30;
+    public int testx=30,testy=30;
     private int SrceenW,SrceenH;
     private SurfaceHolder sfh;
     private Paint paint;
-    private Thread th;
-    private boolean th_dead_flag;
     private Canvas canvas;
+    int currentframe;
 
-    public GameSurface(Context context)
+    Bitmap map[]=new Bitmap[5];
+    public GameSurface(Context context, AttributeSet attrs)
     {
-        super(context);
+        super(context,attrs);
         sfh =this.getHolder();
         sfh.addCallback(this);//添加状态监听
         paint =new Paint();
-        paint.setColor(Color.WHITE);
+        paint.setColor(Color.BLACK);
+
+        map[0]= BitmapFactory.decodeResource(this.getContext().getResources(),R.drawable.timg1);
+        map[1]= BitmapFactory.decodeResource(this.getContext().getResources(),R.drawable.timg2);
+        map[2]= BitmapFactory.decodeResource(this.getContext().getResources(),R.drawable.timg3);
+        map[3]= BitmapFactory.decodeResource(this.getContext().getResources(),R.drawable.timg4);
+        map[4]= BitmapFactory.decodeResource(this.getContext().getResources(),R.drawable.timg5);
+
     }
 
     public void mydraw()
@@ -36,8 +44,16 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback,R
         try {
             canvas = sfh.lockCanvas();
             //canvas.drawRect(0,0,this.getWidth(),this.getHeight(),paint);
-            canvas.drawColor(Color.BLACK);
-            canvas.drawText("杨越真帅", testx, testy, paint);
+            if(canvas!=null)
+            {
+                canvas.drawColor(Color.WHITE);
+                currentframe++;
+                if(currentframe>=5)currentframe=0;
+
+                canvas.drawBitmap(map[currentframe],testx,testy,paint);
+            }
+
+
         }catch (Exception e){}
         finally {
             if(canvas!=null)sfh.unlockCanvasAndPost(canvas);
@@ -48,9 +64,6 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback,R
     {
         this.SrceenH=this.getHeight();
         this.SrceenW=this.getWidth();
-        th=new Thread(this);
-        th.start();
-        th_dead_flag=true;
         mydraw();//自定义的绘图函数
     }
     public void surfaceChanged(SurfaceHolder holder,int format,int width,int height)
@@ -58,7 +71,6 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback,R
     }
     public  void surfaceDestroyed(SurfaceHolder holder)
     {
-        th_dead_flag=false;
     }
 
     //通过线程刷屏
@@ -70,30 +82,4 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback,R
         return true;
     }
 
-
-    private void logic()//在这里添加游戏逻辑
-    {
-
-    }
-
-    public void run(){
-        while(th_dead_flag){
-            //Log.d("err","1234");
-            long start =System.currentTimeMillis();
-            mydraw();
-            logic();
-            long end=System.currentTimeMillis();
-            try
-            {
-                if(end-start<50)
-                {//为什么要线程休眠，有可能logic太长，为了保持相同帧率需要线程演示一下子
-                    Thread.sleep(50-(end-start));
-                }
-            }
-            catch (InterruptedException e)
-            {
-                e.printStackTrace();
-            }
-        }
-    }
 }
